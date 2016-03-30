@@ -1,0 +1,15 @@
+[package]
+name = "libsgl_xml"
+version = "0.1.0"
+authors = ["Square Gears Logic <sgl@mail2world.com>"]
+
+[lib]
+name = "libsgl_xml"
+test = true
+
+#crate-type = ["dylib"]
+# crate-type = ["staticlib"]
+# crate-type = ["lib"]
+crate-type = ["rlib"]
+
+[dependencies]
