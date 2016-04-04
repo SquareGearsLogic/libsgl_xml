@@ -1,12 +1,55 @@
+// Licensed to the Square Gears Logic (SGL) under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  The SGL licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{BufReader, Error};
 
 use xml_item::{XmlItem, XmlItemRc};
 
+/// Represents a bunch of DOM-related algorithms. 
 pub struct XmlDom;
 
 impl XmlDom {
+    /// Reads XML document into browsable DOM structure with single root element.
+    ///
+    /// This parser supports:
+    ///
+    /// ```xml
+    ///  <One/> 
+    ///  <tag/>
+    ///  <per/>
+    ///  <line/>
+    /// ```
+    ///
+    /// ```xml
+    ///  <!-- Multi
+    ///         Line
+    ///           comments -->
+    /// ```
+    ///
+    /// ```xml
+    ///  <  multi
+    ///          line="
+    ///             tags"
+    /// 
+    ///  >
+    /// ```
+    ///
+    /// and multiple attributes, that may contain slashed quoutes \\"
+    ///
     pub fn open(filename: String) -> Result<XmlItemRc, String> {
         let mut result = Err("Can't open xml".to_string());
         let file = match File::open(filename) {
@@ -65,7 +108,7 @@ impl XmlDom {
             } else if let Some(_) = line.find("/>") {
                 match &mut Self::parse_tag(tag_content) {
                     &mut Ok(ref mut val) => {
-                        XmlItem::add_child(current_parrent.clone(), val.clone());
+                        XmlItem::add_node(current_parrent.clone(), val.clone());
                     }
                     &mut Err(ref mut val) => {
                         return Err(val.clone());
@@ -75,7 +118,7 @@ impl XmlDom {
                 match &mut Self::parse_tag(tag_content) {
                     &mut Ok(ref mut val) => {
                         if (*current_parrent.borrow_mut()).is_some() {
-                            XmlItem::add_child(current_parrent.clone(), val.clone());
+                            XmlItem::add_node(current_parrent.clone(), val.clone());
                         }
                         current_parrent = val.clone();
                         if result.is_err() {
@@ -162,22 +205,21 @@ impl XmlDom {
                                 &(attributes.len() - 1))
                          .trim()
                          .to_string();
-                         
+
         let mut is_value_end_found = false;
         let mut val_end = 0;
         {
-        let mut iter = attributes.match_indices("\"").filter(|ch| 
-        	{
-        		let val = substr_any(&attributes, &(ch.0-1), &ch.0);
-        		!val.eq("\\\"")
-        	});
-		while let Some(ch) = iter.next() {
-	        is_value_end_found = true;
-	        val_end = ch.0;
-	        break;
+            let mut iter = attributes.match_indices("\"").filter(|ch| {
+                let val = substr_any(&attributes, &(ch.0 - 1), &ch.0);
+                !val.eq("\\\"")
+            });
+            while let Some(ch) = iter.next() {
+                is_value_end_found = true;
+                val_end = ch.0;
+                break;
+            }
         }
-        }
-        
+
         if is_value_end_found {
             XmlItem::set_attribute(rc.clone(),
                                    name,
@@ -185,18 +227,20 @@ impl XmlDom {
         } else {
             return;
         }
-        attributes = substr_any(&attributes, &(val_end + 1), &(attributes.len() - 1)).trim().to_string();
+        attributes = substr_any(&attributes, &(val_end + 1), &(attributes.len() - 1))
+                         .trim()
+                         .to_string();
         if !attributes.is_empty() {
             Self::parse_attributes(rc.clone(), attributes);
         }
     }
-    
+
     pub fn save_file(rc: XmlItemRc, filename: String) -> Result<(), Error> {
 
         let mut file = try!(File::create(filename));
         try!(file.write_all(XmlItem::as_string(rc.clone()).as_bytes()));
         try!(file.sync_all());
-    	Ok(())
+        Ok(())
     }
 }
 
@@ -232,20 +276,12 @@ pub fn substr_try(string: &String, begin: &usize, end: &usize) -> Result<String,
     }
 }
 
-/// //////////////////////////////////////////////////////////////////////////////
-
 #[cfg(test)]
 mod test {
-
+    #[allow(unused_imports)]
     use xml_item::{XmlItem, XmlItemRc};
+    #[allow(unused_imports)]
     use XmlDom;
-
-    #[test]
-    fn open() {
-        let chain_one: XmlItemRc = XmlDom::open("C:\\projects\\MyProjects\\Rust\\apps\\test.xml"
-                                                    .to_string());
-        assert_eq!(XmlItem::get_name(chain_one.clone()), "root".to_string());
-    }
 
     #[test]
     fn substr_any() {
