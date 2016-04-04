@@ -21,49 +21,52 @@ libsgl_xml = { path = "libsgl_xml", version = "*"}
 ```rust
 extern crate libsgl_xml;
 
+use std::path::Path;
+
 use libsgl_xml::{XmlItem, XmlItemRc};
 use libsgl_xml::XmlDom;
 
 fn main() {
     // Load from xml file
-    match XmlDom::open("test.xml".to_string()) {
+    match XmlDom::open(Path::new("./tests/test.xml")) {
         Ok(root) => {
-            // Print it
-            println!("test.xml starts with \"{}\" element :\n{}\n----------",
+            // Распечатка.
+            println!("test.xml начинается с \"{}\" элемента :\n{}\n----------",
                      XmlItem::get_name(root.clone()),
                      XmlItem::as_string(root.clone()));
 
-            // Get array of Root's sub-nodes and selet first item.
-            // All nodes, including first one, are Counted References, so simply clone() them everywhere.
+            // Берём массив нодов корневого элемента и выделяем первый из них.
+            // Все ноды, включая корневой - подсчитываемые ссылки, 
+			// так что для передачи их надо просто clone().
             let first_node_of_root: XmlItemRc = XmlItem::get_nodes(root.clone())[0].clone();
 
-            // Attach another node with attribute to "first_node_of_root"
+            // Прикрепляем к "first_node_of_root" новый нод с атрибутом.
             let new_node = XmlItem::add_node(first_node_of_root.clone(),
                                              XmlItem::new("YetAnotherNode".to_string()));
             XmlItem::set_attribute(new_node.clone(), "ID".to_string(), "42".to_string());
 
-            // Save it result to another xml file
-            if let Err(val) = XmlDom::save_file(root.clone(), "result.xml".to_string()) {
-                // Support error messages
-                println!("Error: \"{}\"", val);
+            // Сохраняем результат в другой XML файл.
+            if let Err(val) = XmlDom::save_file(root.clone(), Path::new("./tests/result.xml")) {
+                // Поддержка сообщений об ошибках.
+                println!("Ошибка: \"{}\"", val);
             } else {
-                println!("Saved result.xml :\n{}\n----------",
+                println!("Результат сохранён в result.xml :\n{}\n----------",
                          XmlItem::as_string(root.clone()));
             }
 
-            // You may clean memory manually
+            // Можно почистить память вручную.
             XmlItem::clean(root.clone());
         }
         Err(val) => {
-            // Support error messages
-            println!("Error: \"{}\"", val);
+            // Поддержка сообщений об ошибках.
+            println!("Ошибка: \"{}\"", val);
         }
     };
 }
 ```
-Output:
+Вывод:
 ```xml
-test.xml starts with "root" element :
+test.xml начинается с "root" элемента :
 <root a="b" c="d">
 	<node_1.1>
 		<node_2.1/>
@@ -73,7 +76,7 @@ test.xml starts with "root" element :
 	</node_1.2>
 </root>
 ----------
-Saved result.xml :
+Результат сохранён в result.xml :
 <root a="b" c="d">
 	<node_1.1>
 		<node_2.1/>

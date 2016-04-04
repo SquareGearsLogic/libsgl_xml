@@ -21,12 +21,14 @@
 //! ```
 //! extern crate libsgl_xml;
 //!
+//! use std::path::Path;
+//! 
 //! use libsgl_xml::{XmlItem, XmlItemRc};
 //! use libsgl_xml::XmlDom;
 //!
 //! fn main() {
 //!     // Load from xml file
-//!     match XmlDom::open("test.xml".to_string()) {
+//!     match XmlDom::open(Path::new("./tests/test.xml")) {
 //!         Ok(root) => {
 //!             // Print it
 //!             println!("test.xml starts with \"{}\" element :\n{}\n----------",
@@ -43,7 +45,7 @@
 //!             XmlItem::set_attribute(new_node.clone(), "ID".to_string(), "42".to_string());
 //!
 //!             // Save it result to another xml file
-//!             if let Err(val) = XmlDom::save_file(root.clone(), "result.xml".to_string()) {
+//!             if let Err(val) = XmlDom::save_file(root.clone(), Path::new("./tests/result.xml")) {
 //!                 // Support error messages
 //!                 println!("Error: \"{}\"", val);
 //!             } else {

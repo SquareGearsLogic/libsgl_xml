@@ -21,14 +21,16 @@ Using
 ```rust
 extern crate libsgl_xml;
 
+use std::path::Path;
+
 use libsgl_xml::{XmlItem, XmlItemRc};
 use libsgl_xml::XmlDom;
 
 fn main() {
-    // Load from xml file
-    match XmlDom::open("test.xml".to_string()) {
+    // Load from xml file.
+    match XmlDom::open(Path::new("./tests/test.xml")) {
         Ok(root) => {
-            // Print it
+            // Print it.
             println!("test.xml starts with \"{}\" element :\n{}\n----------",
                      XmlItem::get_name(root.clone()),
                      XmlItem::as_string(root.clone()));
@@ -37,25 +39,25 @@ fn main() {
             // All nodes, including first one, are Counted References, so simply clone() them everywhere.
             let first_node_of_root: XmlItemRc = XmlItem::get_nodes(root.clone())[0].clone();
 
-            // Attach another node with attribute to "first_node_of_root"
+            // Attach another node with attribute to "first_node_of_root".
             let new_node = XmlItem::add_node(first_node_of_root.clone(),
                                              XmlItem::new("YetAnotherNode".to_string()));
             XmlItem::set_attribute(new_node.clone(), "ID".to_string(), "42".to_string());
 
-            // Save it result to another xml file
-            if let Err(val) = XmlDom::save_file(root.clone(), "result.xml".to_string()) {
-                // Support error messages
+            // Save result to another XML file.
+            if let Err(val) = XmlDom::save_file(root.clone(), Path::new("./tests/result.xml")) {
+                // Support error messages.
                 println!("Error: \"{}\"", val);
             } else {
                 println!("Saved result.xml :\n{}\n----------",
                          XmlItem::as_string(root.clone()));
             }
 
-            // You may clean memory manually
+            // You may clean memory manually.
             XmlItem::clean(root.clone());
         }
         Err(val) => {
-            // Support error messages
+            // Support error messages.
             println!("Error: \"{}\"", val);
         }
     };

@@ -15,12 +15,14 @@
 
 extern crate libsgl_xml;
 
+use std::path::Path;
+
 use libsgl_xml::XmlItem;
 use libsgl_xml::XmlDom;
 
 #[test]
 fn open() {
-    let mut result = XmlDom::open("tests\\test.xml".to_string());
+    let mut result = XmlDom::open(Path::new("./tests/test.xml"));
     assert_eq!(result.is_ok(), true);
     match &mut result {
         &mut Ok(ref mut val) => {

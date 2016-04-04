@@ -16,6 +16,7 @@
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{BufReader, Error};
+use std::path::Path;
 
 use xml_item::{XmlItem, XmlItemRc};
 
@@ -50,9 +51,9 @@ impl XmlDom {
     ///
     /// and multiple attributes, that may contain slashed quoutes \\"
     ///
-    pub fn open(filename: String) -> Result<XmlItemRc, String> {
+    pub fn open(filename: &Path) -> Result<XmlItemRc, String> {
         let mut result = Err("Can't open xml".to_string());
-        let file = match File::open(filename) {
+        let file = match File::open(filename.as_os_str()) {
             Ok(file) => file,
             Err(_) => return result,
         };
@@ -235,9 +236,9 @@ impl XmlDom {
         }
     }
 
-    pub fn save_file(rc: XmlItemRc, filename: String) -> Result<(), Error> {
+    pub fn save_file(rc: XmlItemRc, filename: &Path) -> Result<(), Error> {
 
-        let mut file = try!(File::create(filename));
+        let mut file = try!(File::create(filename.as_os_str()));
         try!(file.write_all(XmlItem::as_string(rc.clone()).as_bytes()));
         try!(file.sync_all());
         Ok(())
